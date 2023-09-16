@@ -14,6 +14,7 @@ export type Codes =
   | "INR"
   | "JPY"
   | "KRW"
+  | "MYR"
   | "MXN"
   | "NOK"
   | "NZD"
@@ -54,6 +55,7 @@ export const currencies: Currency[] = [
   { code: "INR", local: "India", symbol: "₹", name: "Indian Rupee" },
   { code: "JPY", local: "Japan", symbol: "¥", name: "Japanese Yen" },
   { code: "KRW", local: "South Korea", symbol: "₩", name: "South Korean Won" },
+  { code: "MYR", local: "Malaysia", symbol: "RM", name: "Malaysia Ringgit" },
   { code: "MXN", local: "Mexico", symbol: "Mex$", name: "Mexican Peso" },
   { code: "NOK", local: "Norway", symbol: "kr", name: "Norwegian Krone" },
   { code: "NZD", local: "New Zealand", symbol: "NZ$", name: "New Zealand Dollar" },
