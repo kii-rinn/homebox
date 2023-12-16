@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/hay-kot/homebox/backend/app/api/handlers/debughandlers"
 	v1 "github.com/hay-kot/homebox/backend/app/api/handlers/v1"
+	"github.com/hay-kot/homebox/backend/app/api/providers"
 	_ "github.com/hay-kot/homebox/backend/app/api/static/docs"
 	"github.com/hay-kot/homebox/backend/internal/data/ent/authroles"
 	"github.com/hay-kot/homebox/backend/internal/data/repo"
@@ -51,7 +52,7 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 	v1Ctrl := v1.NewControllerV1(
 		a.services,
 		a.repos,
-    a.bus,
+		a.bus,
 		v1.WithMaxUploadSize(a.conf.Web.MaxUploadSize),
 		v1.WithRegistration(a.conf.Options.AllowRegistration),
 		v1.WithDemoStatus(a.conf.Demo), // Disable Password Change in Demo Mode
@@ -63,8 +64,12 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		BuildTime: buildTime,
 	})))
 
+	providers := []v1.AuthProvider{
+		providers.NewLocalProvider(a.services.User),
+	}
+
 	r.Post(v1Base("/users/register"), chain.ToHandlerFunc(v1Ctrl.HandleUserRegistration()))
-	r.Post(v1Base("/users/login"), chain.ToHandlerFunc(v1Ctrl.HandleAuthLogin()))
+	r.Post(v1Base("/users/login"), chain.ToHandlerFunc(v1Ctrl.HandleAuthLogin(providers...)))
 
 	userMW := []errchain.Middleware{
 		a.mwAuthToken,
@@ -92,6 +97,7 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 	r.Post(v1Base("/actions/ensure-asset-ids"), chain.ToHandlerFunc(v1Ctrl.HandleEnsureAssetID(), userMW...))
 	r.Post(v1Base("/actions/zero-item-time-fields"), chain.ToHandlerFunc(v1Ctrl.HandleItemDateZeroOut(), userMW...))
 	r.Post(v1Base("/actions/ensure-import-refs"), chain.ToHandlerFunc(v1Ctrl.HandleEnsureImportRefs(), userMW...))
+	r.Post(v1Base("/actions/set-primary-photos"), chain.ToHandlerFunc(v1Ctrl.HandleSetPrimaryPhotos(), userMW...))
 
 	r.Get(v1Base("/locations"), chain.ToHandlerFunc(v1Ctrl.HandleLocationGetAll(), userMW...))
 	r.Post(v1Base("/locations"), chain.ToHandlerFunc(v1Ctrl.HandleLocationCreate(), userMW...))
